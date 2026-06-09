@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Jarvis"/>
+<meta name="theme-color" content="#0a1628"/>
+<link rel="manifest" href="manifest.json"/>
+<title>J.A.R.V.I.S</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--bg:#0a1628;--surface:#0f2040;--surface2:#132850;--blue:#3a8ef6;--blue-dim:#1a4a8a;--green:#1de9b6;--pink:#e05cc7;--text:#e8f4ff;--muted:#4a6d96;--border:#1a3a6b;--font:'Inter',sans-serif;--mono:'Share Tech Mono',monospace;--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px);}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--font);}
+#app{display:flex;flex-direction:column;height:100dvh;padding-top:var(--safe-top);}
+
+/* Header */
+#header{flex:0 0 auto;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:var(--surface);}
+.h-left{display:flex;align-items:center;gap:10px;}
+.logo-orb{width:36px;height:36px;border-radius:50%;background:var(--bg);border:1.5px solid var(--blue);display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;}
+.logo-core{width:12px;height:12px;border-radius:50%;background:var(--blue);animation:pulse 2s ease-in-out infinite;}
+.logo-ring{position:absolute;inset:0;border-radius:50%;border:1px solid var(--blue);opacity:0;animation:ripple 2.5s infinite;}
+.logo-ring2{animation-delay:.9s;}
+.h-name{font-size:13px;font-weight:600;letter-spacing:.1em;}
+.h-status{font-size:10px;color:var(--blue);font-family:var(--mono);}
+.h-actions{display:flex;gap:6px;}
+.h-btn{width:34px;height:34px;border-radius:50%;background:transparent;border:1px solid var(--border);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;transition:all .2s;}
+.h-btn.active{border-color:var(--green);color:var(--green);background:rgba(29,233,182,.1);}
+
+/* Setup */
+#setup{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 22px;gap:16px;overflow-y:auto;}
+#setup h1{font-size:24px;font-weight:600;letter-spacing:.08em;text-align:center;}
+.badge{background:var(--green);color:#0a1628;font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px;}
+.desc{font-size:14px;color:var(--muted);text-align:center;line-height:1.6;max-width:300px;}
+.steps{width:100%;display:flex;flex-direction:column;gap:9px;}
+.step{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:11px 13px;display:flex;gap:11px;align-items:flex-start;}
+.sn{width:24px;height:24px;border-radius:50%;background:var(--blue-dim);border:1px solid var(--blue);color:var(--blue);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.st{font-size:13px;line-height:1.55;color:var(--text);}
+.st a{color:var(--blue);text-decoration:none;font-weight:500;}
+.setup-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;color:var(--text);font-size:14px;font-family:var(--mono);outline:none;}
+.setup-input:focus{border-color:var(--blue);}
+.setup-input::placeholder{color:var(--muted);}
+.btn-primary{width:100%;padding:15px;background:var(--blue);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:600;cursor:pointer;}
+.setup-note{font-size:11px;color:var(--muted);text-align:center;line-height:1.7;}
+
+/* Chat */
+#chat-area{flex:1 1 auto;overflow-y:auto;padding:16px 14px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth;}
+.msg-user{align-self:flex-end;max-width:82%;}
+.msg-jarvis{align-self:flex-start;max-width:82%;}
+.bubble{padding:11px 14px;font-size:14px;line-height:1.55;}
+.bubble-user{background:#18407a;border:1px solid #2a5ea0;border-radius:16px 16px 4px 16px;}
+.bubble-jarvis{background:var(--surface);border:1px solid var(--border);border-radius:16px 16px 16px 4px;}
+.msg-meta{font-size:10px;color:var(--muted);margin-top:4px;padding:0 4px;}
+.msg-user .msg-meta{text-align:right;}
+.typing-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--blue);margin:0 2px;animation:bounce .9s infinite;}
+.typing-dot:nth-child(2){animation-delay:.15s;}
+.typing-dot:nth-child(3){animation-delay:.3s;}
+
+/* Bottom */
+#bottom{flex:0 0 auto;padding:10px 14px calc(10px + var(--safe-bottom));background:var(--surface);border-top:1px solid var(--border);}
+.quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px;}
+.quick-btn{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 10px;color:var(--text);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:7px;text-align:left;}
+.quick-btn:active{border-color:var(--blue);background:var(--blue-dim);}
+
+/* Always-on mic orb */
+.orb-wrap{display:flex;flex-direction:column;align-items:center;margin-bottom:10px;}
+.orb{width:64px;height:64px;border-radius:50%;background:var(--surface2);border:2px solid var(--border);font-size:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .3s;position:relative;}
+.orb.idle{border-color:var(--border);color:var(--muted);}
+.orb.listening{border-color:var(--blue);color:var(--blue);background:rgba(58,142,246,.12);box-shadow:0 0 0 6px rgba(58,142,246,.1),0 0 0 14px rgba(58,142,246,.05);animation:orb-pulse 1.5s ease-in-out infinite;}
+.orb.heard{border-color:var(--green);color:var(--green);background:rgba(29,233,182,.12);box-shadow:0 0 0 8px rgba(29,233,182,.12);}
+.orb.speaking{border-color:var(--green);color:var(--green);background:rgba(29,233,182,.1);animation:orb-pulse 0.8s ease-in-out infinite;}
+.orb.thinking{border-color:#f5a623;color:#f5a623;background:rgba(245,166,35,.1);animation:orb-spin 1s linear infinite;}
+.orb.off{border-color:var(--pink);color:var(--pink);background:rgba(224,92,199,.08);}
+.orb-label{font-size:10px;font-family:var(--mono);margin-top:6px;text-align:center;min-height:16px;}
+.orb.idle .orb-label,.orb.off .orb-label{color:var(--muted);}
+.orb.listening .orb-label{color:var(--blue);}
+.orb.heard .orb-label,.orb.speaking .orb-label{color:var(--green);}
+.orb.thinking .orb-label{color:#f5a623;}
+
+/* Text input */
+.input-row{display:flex;gap:8px;align-items:flex-end;}
+.input-wrap{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:22px;padding:10px 14px;display:flex;align-items:center;}
+.input-wrap:focus-within{border-color:var(--blue);}
+#txt{flex:1;background:transparent;border:none;outline:none;font-size:14px;color:var(--text);font-family:var(--font);resize:none;max-height:100px;line-height:1.4;}
+#txt::placeholder{color:var(--muted);}
+.send-btn{width:42px;height:42px;border-radius:50%;background:var(--blue);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+
+/* Memory panel */
+#mem-panel{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:50;display:none;align-items:flex-end;}
+#mem-panel.open{display:flex;}
+.mem-sheet{background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-height:72dvh;overflow-y:auto;padding:20px 18px calc(20px + var(--safe-bottom));}
+.mem-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.mem-title{font-size:15px;font-weight:600;}
+.mem-close{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;}
+.mem-item{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.mem-text{font-size:13px;line-height:1.5;flex:1;}
+.mem-del{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;}
+.mem-empty{text-align:center;color:var(--muted);font-size:13px;padding:32px 0;line-height:1.7;}
+.mem-clear{width:100%;padding:11px;background:transparent;border:1px solid var(--pink);border-radius:10px;color:var(--pink);font-size:13px;cursor:pointer;margin-top:8px;}
+
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(.85)}}
+@keyframes ripple{0%{transform:scale(1);opacity:.8}100%{transform:scale(2.2);opacity:0}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes orb-pulse{0%,100%{box-shadow:0 0 0 4px rgba(58,142,246,.15),0 0 0 10px rgba(58,142,246,.07)}50%{box-shadow:0 0 0 8px rgba(58,142,246,.2),0 0 0 18px rgba(58,142,246,.05)}}
+@keyframes orb-spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.fadein{animation:fadein .35s ease forwards;}
+</style>
+</head>
+<body>
+
+<!-- Setup -->
+<div id="setup">
+  <div style="font-size:52px">🤖</div>
+  <h1>J.A.R.V.I.S</h1>
+  <span class="badge">✅ 100% GRATIS con Google</span>
+  <p class="desc">Usa Gemini de Google — sin tarjeta, sin cobros.</p>
+  <div class="steps">
+    <div class="step"><div class="sn">1</div><div class="st">Ve a <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a> e inicia sesión con Google</div></div>
+    <div class="step"><div class="sn">2</div><div class="st">Toca <strong>"Create API key"</strong> → <strong>"Create API key in new project"</strong> y copia la clave</div></div>
+    <div class="step"><div class="sn">3</div><div class="st">Pégala aquí y toca <strong>"Activar Jarvis"</strong></div></div>
+  </div>
+  <input id="api-key-input" class="setup-input" type="password" placeholder="AIzaSy..." autocomplete="off" spellcheck="false"/>
+  <button class="btn-primary" onclick="saveKey()">⚡ Activar Jarvis</button>
+  <p class="setup-note">Tu clave se guarda solo en este dispositivo.</p>
+</div>
+
+<!-- App -->
+<div id="app" style="display:none">
+  <div id="header">
+    <div class="h-left">
+      <div class="logo-orb"><div class="logo-core"></div><div class="logo-ring"></div><div class="logo-ring logo-ring2"></div></div>
+      <div><div class="h-name">J.A.R.V.I.S</div><div class="h-status" id="h-status">INICIANDO…</div></div>
+    </div>
+    <div class="h-actions">
+      <button class="h-btn" id="always-btn" onclick="toggleAlways()" title="Escucha continua ON/OFF">🎙️</button>
+      <button class="h-btn" onclick="openMem()">🧠</button>
+      <button class="h-btn" onclick="clearKey()">⚙️</button>
+    </div>
+  </div>
+
+  <div id="chat-area"></div>
+
+  <div id="bottom">
+    <div class="quick-grid">
+      <button class="quick-btn" onclick="sendQuick('¿Qué tiempo hace hoy en Bogotá?')">🌤️ Clima hoy</button>
+      <button class="quick-btn" onclick="sendQuick('¿Qué recuerdas de mí?')">🧠 Mis datos</button>
+      <button class="quick-btn" onclick="sendQuick('Resume lo que hemos hablado hoy')">📋 Resumen</button>
+      <button class="quick-btn" onclick="sendQuick('¿Qué puedes hacer?')">⚡ Capacidades</button>
+    </div>
+
+    <!-- Always-on orb -->
+    <div class="orb-wrap">
+      <div class="orb idle" id="orb" onclick="orbTap()">🎙️</div>
+      <div class="orb-label" id="orb-label">Di "Jarvis" para activar</div>
+    </div>
+
+    <div class="input-row">
+      <div class="input-wrap"><textarea id="txt" rows="1" placeholder="O escribe aquí…" onkeydown="onKey(event)" oninput="autoResize(this)"></textarea></div>
+      <button class="send-btn" onclick="sendText()">➤</button>
+    </div>
+  </div>
+</div>
+
+<!-- Memory panel -->
+<div id="mem-panel" onclick="closeMem(event)">
+  <div class="mem-sheet">
+    <div class="mem-header"><span class="mem-title">🧠 Memoria de Jarvis</span><button class="mem-close" onclick="closeMem()">✕</button></div>
+    <div id="mem-list"></div>
+    <button class="mem-clear" onclick="clearAllMem()">🗑️ Borrar toda la memoria</button>
+  </div>
+</div>
+
+<script>
+// ── State ───────────────────────────────────────────────────────
+let apiKey  = localStorage.getItem('jarvis_key') || '';
+let history = JSON.parse(localStorage.getItem('jarvis_history') || '[]');
+let memory  = JSON.parse(localStorage.getItem('jarvis_memory')  || '[]');
+let alwaysOn = localStorage.getItem('jarvis_always') !== 'off'; // default ON
+let SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recog = null;
+let isBusy = false; // true while thinking or speaking
+const synth = window.speechSynthesis;
+
+// ── Setup ───────────────────────────────────────────────────────
+function saveKey() {
+  const k = document.getElementById('api-key-input').value.trim();
+  if (k.length < 10) { alert('Pega tu API key de Google (AIzaSy...)'); return; }
+  apiKey = k; localStorage.setItem('jarvis_key', k); launchApp();
+}
+function clearKey() {
+  if (!confirm('¿Cerrar sesión? Tu memoria se conservará.')) return;
+  localStorage.removeItem('jarvis_key'); location.reload();
+}
+
+// ── Launch ──────────────────────────────────────────────────────
+function launchApp() {
+  document.getElementById('setup').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  if (history.length === 0) {
+    addBubble('jarvis', '¡En línea! Soy Jarvis.\n\nEstoy escuchando todo el tiempo 👂 — solo di mi nombre:\n\n👉 "Jarvis, ¿qué hora es?"\n👉 "Jarvis, recuerda que trabajo en..."\n👉 "Jarvis, pon una alarma para las 8"\n\nTambién puedes escribirme abajo. ¿En qué te ayudo?');
+  } else {
+    history.slice(-6).forEach(m => addBubble(m.role === 'user' ? 'user' : 'jarvis', m.parts[0].text, false));
+  }
+  updateAlwaysBtn();
+  if (SR) startListening();
+  else { setOrb('off', 'Usa Chrome para voz'); setStatus('SIN MICRÓFONO'); }
+}
+
+// ── Always-on toggle ────────────────────────────────────────────
+function toggleAlways() {
+  alwaysOn = !alwaysOn;
+  localStorage.setItem('jarvis_always', alwaysOn ? 'on' : 'off');
+  updateAlwaysBtn();
+  if (alwaysOn) { startListening(); }
+  else { stopListening(); setOrb('off', 'Escucha desactivada'); setStatus('MICRÓFONO OFF'); }
+}
+function updateAlwaysBtn() {
+  const btn = document.getElementById('always-btn');
+  if (alwaysOn) { btn.classList.add('active'); btn.title = 'Escucha activa — toca para pausar'; }
+  else { btn.classList.remove('active'); btn.title = 'Escucha pausada — toca para activar'; }
+}
+
+// Tap orb manually to listen now
+function orbTap() {
+  if (!alwaysOn) { alwaysOn = true; localStorage.setItem('jarvis_always','on'); updateAlwaysBtn(); startListening(); return; }
+  if (!isBusy) startListening();
+}
+
+// ── Speech Recognition (always-on) ─────────────────────────────
+function startListening() {
+  if (!SR || isBusy) return;
+  stopListening(); // clean up
+  recog = new SR();
+  recog.lang = 'es-ES';
+  recog.interimResults = true;
+  recog.continuous = false; // restart manually for reliability
+  recog.maxAlternatives = 1;
+
+  let finalTranscript = '';
+  let interimTranscript = '';
+
+  recog.onstart = () => {
+    if (!isBusy) setOrb('listening', 'Escuchando… di "Jarvis"');
+  };
+
+  recog.onresult = (e) => {
+    interimTranscript = '';
+    finalTranscript = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) finalTranscript += e.results[i][0].transcript;
+      else interimTranscript += e.results[i][0].transcript;
+    }
+    if (interimTranscript) {
+      const low = interimTranscript.toLowerCase();
+      if (low.includes('jarvis')) setOrb('heard', '"Jarvis" detectado…');
+    }
+  };
+
+  recog.onend = () => {
+    if (finalTranscript.trim()) {
+      const low = finalTranscript.toLowerCase();
+      if (low.includes('jarvis')) {
+        const cmd = finalTranscript.replace(/jarvis[,.\s]*/gi, '').trim();
+        if (cmd.length > 1) {
+          addBubble('user', cmd);
+          askJarvis(cmd);
+        } else {
+          speak('Dime, te escucho.');
+          setTimeout(() => { if (alwaysOn && !isBusy) startListening(); }, 1500);
+        }
+      } else {
+        // No wakeword — restart silently
+        if (alwaysOn && !isBusy) setTimeout(startListening, 300);
+      }
+    } else {
+      if (alwaysOn && !isBusy) setTimeout(startListening, 300);
+    }
+  };
+
+  recog.onerror = (e) => {
+    if (e.error === 'not-allowed') { setOrb('off', 'Permiso de micrófono denegado'); setStatus('SIN PERMISO'); return; }
+    if (alwaysOn && !isBusy) setTimeout(startListening, 800);
+  };
+
+  try { recog.start(); } catch(e) { if (alwaysOn && !isBusy) setTimeout(startListening, 1000); }
+}
+
+function stopListening() {
+  try { recog?.stop(); recog?.abort(); } catch(e) {}
+  recog = null;
+}
+
+// ── Gemini API ──────────────────────────────────────────────────
+async function askJarvis(userMsg) {
+  isBusy = true;
+  setOrb('thinking', 'Procesando…');
+  history.push({role:'user', parts:[{text: userMsg}]});
+  if (history.length > 20) history.splice(0, history.length - 20);
+  localStorage.setItem('jarvis_history', JSON.stringify(history));
+  showTyping(); setStatus('PROCESANDO…');
+
+  const mem = memory.length > 0 ? '\nRECUERDAS DEL USUARIO:\n' + memory.map((m,i) => `${i+1}. ${m}`).join('\n') + '\n' : '';
+  const sys = `Eres Jarvis, asistente personal IA estilo Iron Man. Español, conciso, cálido. Fecha: ${new Date().toLocaleString('es-CO',{timeZone:'America/Bogota'})}.${mem}\nSi el usuario menciona datos importantes sobre él (nombre, trabajo, gustos, ciudad, metas), agrega al final: [GUARDAR: dato]. No dupliques.`;
+
+  const contents = history.map(m => ({...m}));
+  contents[0] = {role:'user', parts:[{text: sys + '\n\n' + contents[0].parts[0].text}]};
+
+  try {
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({contents, generationConfig:{maxOutputTokens:800, temperature:0.8}})
+    });
+    const d = await r.json(); hideTyping();
+    if (!r.ok) {
+      const msg = d?.error?.message || 'Error API';
+      addBubble('jarvis', '⚠️ ' + msg);
+      setStatus('ERROR'); isBusy = false;
+      if (alwaysOn) setTimeout(startListening, 1000);
+      return;
+    }
+    let reply = d.candidates?.[0]?.content?.parts?.[0]?.text || '…';
+    const rx = /\[GUARDAR: (.+?)\]/g; let m;
+    while ((m = rx.exec(reply)) !== null) {
+      const dato = m[1].trim();
+      if (!memory.includes(dato)) { memory.push(dato); localStorage.setItem('jarvis_memory', JSON.stringify(memory)); }
+    }
+    reply = reply.replace(/\[GUARDAR:.*?\]\n?/g, '').trim();
+    history.push({role:'model', parts:[{text: reply}]});
+    localStorage.setItem('jarvis_history', JSON.stringify(history));
+    addBubble('jarvis', reply);
+    setStatus('EN LÍNEA · GEMINI');
+    speak(reply); // isBusy reset inside speak onend
+  } catch(e) {
+    hideTyping(); addBubble('jarvis','⚠️ Sin conexión.'); setStatus('DESCONECTADO');
+    isBusy = false;
+    if (alwaysOn) setTimeout(startListening, 1000);
+  }
+}
+
+// ── TTS ─────────────────────────────────────────────────────────
+function speak(text) {
+  if (!synth) { isBusy = false; if (alwaysOn) setTimeout(startListening, 500); return; }
+  synth.cancel();
+  const clean = text.replace(/[#*`_>]/g,'').replace(/\[.*?\]/g,'');
+  if (clean.length > 500) { isBusy = false; if (alwaysOn) setTimeout(startListening, 500); return; }
+  const utt = new SpeechSynthesisUtterance(clean);
+  utt.lang = 'es-ES'; utt.rate = 1.05;
+  const v = synth.getVoices().find(v => v.lang.startsWith('es') && v.localService);
+  if (v) utt.voice = v;
+  setOrb('speaking', 'Jarvis hablando…');
+  utt.onend = utt.onerror = () => {
+    isBusy = false;
+    setOrb('listening', 'Escuchando… di "Jarvis"');
+    if (alwaysOn) setTimeout(startListening, 600);
+  };
+  synth.speak(utt);
+}
+
+// ── Text input ──────────────────────────────────────────────────
+function sendText() {
+  const t = document.getElementById('txt'), msg = t.value.trim(); if (!msg) return;
+  t.value = ''; autoResize(t); addBubble('user', msg);
+  stopListening(); askJarvis(msg);
+}
+function sendQuick(msg) { addBubble('user', msg); stopListening(); askJarvis(msg); }
+function onKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendText(); } }
+function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; }
+
+// ── UI helpers ──────────────────────────────────────────────────
+function setOrb(state, label) {
+  const orb = document.getElementById('orb');
+  const lbl = document.getElementById('orb-label');
+  const icons = {idle:'🎙️', listening:'🎙️', heard:'👂', speaking:'🔊', thinking:'⚙️', off:'🚫'};
+  orb.className = 'orb ' + state;
+  orb.textContent = icons[state] || '🎙️';
+  if (lbl) lbl.textContent = label || '';
+}
+function setStatus(s) { document.getElementById('h-status').textContent = s; }
+function addBubble(who, text, animate=true) {
+  const a = document.getElementById('chat-area'), w = document.createElement('div');
+  w.className = `msg-${who}${animate?' fadein':''}`;
+  const t = new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'});
+  w.innerHTML = `<div class="bubble bubble-${who}">${esc(text)}</div><div class="msg-meta">${who==='jarvis'?'Jarvis':'Tú'} · ${t}</div>`;
+  a.appendChild(w); a.scrollTop = a.scrollHeight;
+}
+function showTyping() {
+  const a = document.getElementById('chat-area'), el = document.createElement('div');
+  el.id='typing'; el.className='msg-jarvis fadein';
+  el.innerHTML='<div class="bubble bubble-jarvis"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>';
+  a.appendChild(el); a.scrollTop = a.scrollHeight;
+}
+function hideTyping() { document.getElementById('typing')?.remove(); }
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+
+// ── Memory ──────────────────────────────────────────────────────
+function openMem() { renderMem(); document.getElementById('mem-panel').classList.add('open'); }
+function closeMem(e) { if (!e || e.target === document.getElementById('mem-panel')) document.getElementById('mem-panel').classList.remove('open'); }
+function renderMem() {
+  const l = document.getElementById('mem-list');
+  if (!memory.length) { l.innerHTML = '<div class="mem-empty">Sin recuerdos aún.<br>Jarvis aprende mientras conversas.</div>'; return; }
+  l.innerHTML = memory.map((m,i) => `<div class="mem-item"><span class="mem-text">💾 ${esc(m)}</span><button class="mem-del" onclick="deleteMem(${i})">✕</button></div>`).join('');
+}
+function deleteMem(i) { memory.splice(i,1); localStorage.setItem('jarvis_memory',JSON.stringify(memory)); renderMem(); }
+function clearAllMem() { if(!confirm('¿Borrar toda la memoria?'))return; memory=[]; localStorage.setItem('jarvis_memory',JSON.stringify(memory)); renderMem(); }
+
+// ── Init ────────────────────────────────────────────────────────
+if (apiKey) launchApp();
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+window.speechSynthesis?.addEventListener('voiceschanged', ()=>{});
+</script>
+</body>
+</html>
